@@ -1,4 +1,4 @@
-package com.example.chamados;
+package br.com.sistemas.chamados;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
