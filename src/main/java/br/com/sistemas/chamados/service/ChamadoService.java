@@ -1,17 +1,24 @@
 package br.com.sistemas.chamados.service;
 
-import java.util.List;
+import java.time.LocalDateTime;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import br.com.sistemas.chamados.dto.AlterarStatusRequest;
+import br.com.sistemas.chamados.dto.AtribuirTecnicoRequest;
 import br.com.sistemas.chamados.dto.ChamadoRequest;
 import br.com.sistemas.chamados.dto.ChamadoResponse;
 import br.com.sistemas.chamados.entity.Categoria;
 import br.com.sistemas.chamados.entity.Chamado;
 import br.com.sistemas.chamados.entity.Cliente;
+import br.com.sistemas.chamados.entity.Prioridade;
+import br.com.sistemas.chamados.entity.StatusChamado;
 import br.com.sistemas.chamados.entity.Tecnico;
 import br.com.sistemas.chamados.exception.RecursoNaoEncontradoException;
+import br.com.sistemas.chamados.exception.RegraNegocioException;
 import br.com.sistemas.chamados.repository.CategoriaRepository;
 import br.com.sistemas.chamados.repository.ChamadoRepository;
 import br.com.sistemas.chamados.repository.ClienteRepository;
@@ -46,8 +53,16 @@ public class ChamadoService {
     }
 
     @Transactional(readOnly = true)
-    public List<ChamadoResponse> listar() {
-        return repository.findAll().stream().map(ChamadoResponse::de).toList();
+    public Page<ChamadoResponse> listar(StatusChamado status, Prioridade prioridade,
+                                        Long clienteId, Pageable pageable) {
+        return repository.filtrar(status, prioridade, clienteId, pageable)
+            .map(ChamadoResponse::de);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ChamadoResponse> listarPorCliente(Long clienteId, Pageable pageable) {
+        buscarCliente(clienteId);
+        return repository.findByClienteId(clienteId, pageable).map(ChamadoResponse::de);
     }
 
     @Transactional(readOnly = true)
@@ -58,6 +73,7 @@ public class ChamadoService {
     @Transactional
     public ChamadoResponse atualizar(Long id, ChamadoRequest dto) {
         Chamado chamado = buscarEntity(id);
+        validarNaoFechado(chamado);
         chamado.setTitulo(dto.titulo());
         chamado.setDescricao(dto.descricao());
         chamado.setPrioridade(dto.prioridade());
@@ -68,8 +84,37 @@ public class ChamadoService {
     }
 
     @Transactional
+    public ChamadoResponse atribuir(Long id, AtribuirTecnicoRequest dto) {
+        Chamado chamado = buscarEntity(id);
+        if (chamado.getStatus() == StatusChamado.FECHADO) {
+            throw new RegraNegocioException(
+                "Não é possível atribuir técnico ao chamado " + id + " porque ele está fechado");
+        }
+        chamado.setTecnico(buscarTecnico(dto.tecnicoId()));
+        return ChamadoResponse.de(chamado);
+    }
+
+    @Transactional
+    public ChamadoResponse alterarStatus(Long id, AlterarStatusRequest dto) {
+        Chamado chamado = buscarEntity(id);
+        validarNaoFechado(chamado);
+        chamado.setStatus(dto.status());
+        if (dto.status() == StatusChamado.FECHADO) {
+            chamado.setDataFechamento(LocalDateTime.now());
+        }
+        return ChamadoResponse.de(chamado);
+    }
+
+    @Transactional
     public void excluir(Long id) {
         repository.delete(buscarEntity(id));
+    }
+
+    private void validarNaoFechado(Chamado chamado) {
+        if (chamado.getStatus() == StatusChamado.FECHADO) {
+            throw new RegraNegocioException(
+                "Chamado " + chamado.getId() + " está fechado e não pode ser alterado");
+        }
     }
 
     private Chamado buscarEntity(Long id) {
