@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sistema de Chamados</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header>
+    <h1>Sistema de Chamados</h1>
+    <nav>
+        <button class="aba ativa" data-aba="inicio">Início</button>
+        <button class="aba" data-aba="chamados">Chamados</button>
+        <button class="aba" data-aba="clientes">Clientes</button>
+        <button class="aba" data-aba="categorias">Categorias</button>
+        <button class="aba" data-aba="tecnicos">Técnicos</button>
+    </nav>
+</header>
+
+<main>
+    <!-- INICIO -->
+    <section id="inicio" class="tela ativa">
+        <div class="topo">
+            <h2>Início</h2>
+            <button class="primario" onclick="abrirFormChamado()">+ Novo chamado</button>
+        </div>
+
+        <div class="cards" id="cardsTotais"></div>
+
+        <div class="colunas">
+            <div class="painel">
+                <h4>Chamados por status</h4>
+                <div id="graficoStatus"></div>
+            </div>
+            <div class="painel">
+                <h4>Chamados por prioridade</h4>
+                <div id="graficoPrioridade"></div>
+            </div>
+        </div>
+
+        <div class="painel">
+            <h4>Últimos chamados em aberto</h4>
+            <table>
+                <thead><tr><th>#</th><th>Título</th><th>Cliente</th><th>Prioridade</th><th>Status</th><th>Abertura</th></tr></thead>
+                <tbody id="ultimosChamados"></tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- CHAMADOS -->
+    <section id="chamados" class="tela">
+        <div class="topo">
+            <h2>Chamados</h2>
+            <button class="primario" onclick="abrirFormChamado()">+ Novo chamado</button>
+        </div>
+
+        <div class="filtros">
+            <select id="filtroStatus">
+                <option value="">Todos os status</option>
+                <option>ABERTO</option>
+                <option>EM_ATENDIMENTO</option>
+                <option>AGUARDANDO_CLIENTE</option>
+                <option>FECHADO</option>
+            </select>
+            <select id="filtroPrioridade">
+                <option value="">Todas as prioridades</option>
+                <option>BAIXA</option>
+                <option>MEDIA</option>
+                <option>ALTA</option>
+                <option>CRITICA</option>
+            </select>
+            <select id="filtroCliente"><option value="">Todos os clientes</option></select>
+            <select id="ordenacao">
+                <option value="dataAbertura,desc">Mais recentes</option>
+                <option value="dataAbertura,asc">Mais antigos</option>
+                <option value="titulo,asc">Título (A-Z)</option>
+                <option value="prioridade,desc">Prioridade</option>
+            </select>
+            <button onclick="pagina = 0; carregarChamados()">Filtrar</button>
+        </div>
+
+        <table>
+            <thead>
+                <tr><th>#</th><th>Título</th><th>Cliente</th><th>Categoria</th><th>Técnico</th><th>Prioridade</th><th>Status</th><th>Abertura</th></tr>
+            </thead>
+            <tbody id="listaChamados"></tbody>
+        </table>
+
+        <div class="paginacao">
+            <button id="btnAnterior" onclick="pagina--; carregarChamados()">&laquo; Anterior</button>
+            <span id="infoPagina"></span>
+            <button id="btnProxima" onclick="pagina++; carregarChamados()">Próxima &raquo;</button>
+        </div>
+    </section>
+
+    <!-- CLIENTES -->
+    <section id="clientes" class="tela">
+        <div class="topo">
+            <h2>Clientes</h2>
+            <button class="primario" onclick="abrirForm('clientes')">+ Novo cliente</button>
+        </div>
+        <table>
+            <thead><tr><th>#</th><th>Nome</th><th>E-mail</th><th>Telefone</th><th></th></tr></thead>
+            <tbody id="listaClientes"></tbody>
+        </table>
+    </section>
+
+    <!-- CATEGORIAS -->
+    <section id="categorias" class="tela">
+        <div class="topo">
+            <h2>Categorias</h2>
+            <button class="primario" onclick="abrirForm('categorias')">+ Nova categoria</button>
+        </div>
+        <table>
+            <thead><tr><th>#</th><th>Nome</th><th>Descrição</th><th></th></tr></thead>
+            <tbody id="listaCategorias"></tbody>
+        </table>
+    </section>
+
+    <!-- TECNICOS -->
+    <section id="tecnicos" class="tela">
+        <div class="topo">
+            <h2>Técnicos</h2>
+            <button class="primario" onclick="abrirForm('tecnicos')">+ Novo técnico</button>
+        </div>
+        <table>
+            <thead><tr><th>#</th><th>Nome</th><th>E-mail</th><th>Perfil</th><th></th></tr></thead>
+            <tbody id="listaTecnicos"></tbody>
+        </table>
+    </section>
+</main>
+
+<!-- FORMULARIO GENERICO (cliente, categoria, tecnico, chamado) -->
+<dialog id="modalForm">
+    <form id="form" method="dialog">
+        <h3 id="tituloForm"></h3>
+        <div id="camposForm"></div>
+        <div id="errosForm" class="erros"></div>
+        <div class="acoes">
+            <button type="button" onclick="fecharModal('modalForm')">Cancelar</button>
+            <button type="submit" class="primario">Salvar</button>
+        </div>
+    </form>
+</dialog>
+
+<!-- DETALHE DO CHAMADO -->
+<dialog id="modalChamado">
+    <div id="detalheChamado"></div>
+</dialog>
+
+<div id="aviso"></div>
+
+<script src="js/app.js"></script>
+</body>
+</html>
